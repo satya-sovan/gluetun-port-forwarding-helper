@@ -1,22 +1,30 @@
-# images/gluetun-port-updater/Dockerfile
-FROM alpine:3.19
+# Use Python 3.11 Alpine image for smaller size
+FROM python:3.11-alpine
 
-# install runtime deps
-RUN apk add --no-cache curl jq tzdata
-
-# create app dir
+# Set working directory
 WORKDIR /app
 
-# copy script
-COPY app/update-port.sh /app/update-port.sh
-RUN chmod +x /app/update-port.sh
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# default envs (can be overridden via compose)
-ENV GLUETUN_URL="http://gluetun:8000/v1/openvpn/portforwarded" \
-    QBIT_URL="http://qbittorrent:8080" \
-    QBIT_USER="admin" \
-    QBIT_PASS="adminadmin" \
-    INTERVAL_SECONDS=900
+# Copy application files
+COPY update-port-helper.py .
 
-# entrypoint runs script in a loop (runs once immediately, then sleeps)
-ENTRYPOINT ["/bin/sh", "-c", "/app/update-port.sh"]
+# Create non-root user for security
+RUN addgroup -g 1000 appuser && \
+    adduser -D -u 1000 -G appuser appuser
+
+# Switch to non-root user
+USER appuser
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Health check to ensure the container is running properly
+HEALTHCHECK --interval=60s --timeout=10s --retries=3 CMD \
+  wget -qO- $GLUETUN_URL | grep -q '"port":' || exit 1
+
+# Run the application
+CMD ["python", "update-port-helper.py"]
