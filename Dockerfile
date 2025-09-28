@@ -8,7 +8,7 @@ RUN apk add --no-cache curl jq tzdata
 WORKDIR /app
 
 # copy script
-COPY update-port.sh /app/update-port.sh
+COPY app/update-port.sh /app/update-port.sh
 RUN chmod +x /app/update-port.sh
 
 # default envs (can be overridden via compose)
