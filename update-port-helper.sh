@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-GLUETUN_URL="${GLUETUN_URL:-http://gluetun:8000/v1/openvpn/portforwarded}"
+GLUETUN_URL="${GLUETUN_URL:-http://gluetun:8000/v1/portforward}"
 QBIT_URL="${QBIT_URL:-http://qbittorrent:8080}"
 QBIT_USER="${QBIT_USER:-admin}"
 QBIT_PASS="${QBIT_PASS:-adminadmin}"

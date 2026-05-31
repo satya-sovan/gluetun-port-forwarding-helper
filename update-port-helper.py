@@ -5,7 +5,9 @@ import requests
 from datetime import datetime
 
 # Environment variables with defaults
-GLUETUN_URL = os.getenv("GLUETUN_URL", "http://gluetun:8000/v1/openvpn/portforwarded")
+GLUETUN_URL = os.getenv("GLUETUN_URL", "http://gluetun:8000/v1/portforward")
+GLUETUN_USER = os.getenv("GLUETUN_USER", None)  # Optional basic auth username
+GLUETUN_PASS = os.getenv("GLUETUN_PASS", None)  # Optional basic auth password
 QBIT_URL = os.getenv("QBIT_URL", "http://qbittorrent:8080")
 QBIT_USER = os.getenv("QBIT_USER", "admin")
 QBIT_PASS = os.getenv("QBIT_PASS", "adminadmin")
@@ -18,7 +20,10 @@ def log(message: str):
 
 def get_forwarded_port() -> int:
     try:
-        resp = SESSION.get(GLUETUN_URL, timeout=10)
+        auth = None
+        if GLUETUN_USER and GLUETUN_PASS:
+            auth = (GLUETUN_USER, GLUETUN_PASS)
+        resp = SESSION.get(GLUETUN_URL, auth=auth, timeout=10)
         resp.raise_for_status()
         data = resp.json()
         return int(data.get("port", 0))
